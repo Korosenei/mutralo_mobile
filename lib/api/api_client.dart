@@ -4,7 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // const String kBaseUrl = "http://127.0.0.1:8000/";
 // const String kBaseUrl = "https://expectingly-yellowish-winter.ngrok-free.dev";
-const String kBaseUrl = "http://192.168.11.105:8000/";
+// const String kBaseUrl = "http://192.168.11.105:8000/";
+const String kBaseUrl = "https://resto.mutralo.org";
 
 class TokenStorage {
   static const _accessKey = "mutralo_access_token";
@@ -42,7 +43,6 @@ class ApiClient {
         baseUrl: kBaseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
-        headers: {'ngrok-skip-browser-warning': 'true'},
       ),
     );
 
