@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../api/tickets_api.dart';
 import '../../models/ticket.dart';
-import '../../providers/auth_provider.dart';
 import '../../theme/colors.dart';
 import '../../widgets/ticket_card.dart';
-import 'qr_code_screen.dart';
 
 class TicketsScreen extends StatefulWidget {
   const TicketsScreen({super.key});
@@ -35,8 +32,6 @@ class _TicketsScreenState extends State<TicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final utilisateur = context.watch<AuthProvider>().utilisateur;
-
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -51,33 +46,18 @@ class _TicketsScreenState extends State<TicketsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Bonjour ${utilisateur?.prenom ?? ''} 👋',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                      const Text(
+                        'Mes tickets disponibles',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                       ),
                       Text(
-                        '${_tickets.length} ticket${_tickets.length > 1 ? 's' : ''} disponible${_tickets.length > 1 ? 's' : ''} ce mois-ci',
+                        '${_tickets.length} ticket${_tickets.length > 1 ? 's' : ''} ce mois-ci',
                         style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
                       ),
                     ],
                   ),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const QRCodeScreen()),
-                      ),
-                      child: const Text('Générer mon QR code'),
-                    ),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
               if (!_loading && _tickets.isEmpty)
                 const SliverFillRemaining(
                   hasScrollBody: false,
@@ -98,7 +78,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                     ),
                   ),
                 ),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+              const SliverToBoxAdapter(child: SizedBox(height: 110)),
             ],
           ),
         ),

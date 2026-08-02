@@ -44,7 +44,7 @@ class _ConsommationsScreenState extends State<ConsommationsScreen> {
         child: RefreshIndicator(
           onRefresh: () => _charger(_searchCtrl.text),
           child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 110),
             children: [
               const Text('Consommations', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
               const SizedBox(height: AppSpacing.md),

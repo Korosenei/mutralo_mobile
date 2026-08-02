@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../theme/colors.dart';
+import '../../widgets/floating_nav_bar.dart';
+import 'home_dashboard_screen.dart';
 import 'tickets_screen.dart';
+import 'qr_code_screen.dart';
 import 'history_screen.dart';
-import 'notifications_screen.dart';
 import 'profile_screen.dart';
 
 class ClientHome extends StatefulWidget {
@@ -13,30 +14,59 @@ class ClientHome extends StatefulWidget {
 }
 
 class _ClientHomeState extends State<ClientHome> {
-  int _index = 0;
+  static const int _centerIndex = 2; // Accueil au centre
 
-  final _screens = const [
-    TicketsScreen(),
-    HistoryScreen(),
-    NotificationsScreen(),
-    ProfileScreen(),
+  int _index = _centerIndex;
+
+  void _goTo(int index) => setState(() => _index = index);
+
+  late final List<Widget> _screens = [
+    const TicketsScreen(),
+    const QRCodeScreen(),
+    HomeDashboardScreen(onNavigate: _goTo),
+    const HistoryScreen(),
+    const ProfileScreen(),
+  ];
+
+  static const _leftItems = [
+    NavItem(
+      icon: Icons.confirmation_number_outlined,
+      selectedIcon: Icons.confirmation_number,
+      label: 'Tickets',
+    ),
+    NavItem(
+      icon: Icons.qr_code_2_outlined,
+      selectedIcon: Icons.qr_code_2,
+      label: 'QR Code',
+    ),
+  ];
+
+  static const _centerItem = NavItem(
+    icon: Icons.home_outlined,
+    selectedIcon: Icons.home,
+    label: 'Accueil',
+  );
+
+  static const _rightItems = [
+    NavItem(icon: Icons.history, label: 'Historique'),
+    NavItem(
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
+      label: 'Profil',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withOpacity(0.12),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.confirmation_number_outlined), selectedIcon: Icon(Icons.confirmation_number, color: AppColors.primary), label: 'Accueil'),
-          NavigationDestination(icon: Icon(Icons.history), selectedIcon: Icon(Icons.history, color: AppColors.primary), label: 'Historique'),
-          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.primary), label: 'Notifications'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profil'),
-        ],
+      bottomNavigationBar: FloatingNavBar(
+        leftItems: _leftItems,
+        centerItem: _centerItem,
+        rightItems: _rightItems,
+        currentIndex: _index,
+        onTap: _goTo,
       ),
     );
   }

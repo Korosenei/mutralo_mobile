@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/colors.dart';
+import '../../widgets/floating_nav_bar.dart';
 import '../client/notifications_screen.dart';
 import '../client/profile_screen.dart';
 import 'scanner_screen.dart';
@@ -13,30 +13,57 @@ class GestionnaireHome extends StatefulWidget {
 }
 
 class _GestionnaireHomeState extends State<GestionnaireHome> {
-  int _index = 0;
+  static const int _centerIndex = 1; // Scanner au centre
+
+  int _index = _centerIndex;
+
+  void _goTo(int index) => setState(() => _index = index);
 
   final _screens = const [
-    ScannerScreen(),
     ConsommationsScreen(),
+    ScannerScreen(),
     NotificationsScreen(),
     ProfileScreen(),
+  ];
+
+  static const _leftItems = [
+    NavItem(
+      icon: Icons.bar_chart_outlined,
+      selectedIcon: Icons.bar_chart,
+      label: 'Consommations',
+    ),
+  ];
+
+  static const _centerItem = NavItem(
+    icon: Icons.qr_code_scanner_outlined,
+    selectedIcon: Icons.qr_code_scanner,
+    label: 'Scanner',
+  );
+
+  static const _rightItems = [
+    NavItem(
+      icon: Icons.notifications_outlined,
+      selectedIcon: Icons.notifications,
+      label: 'Notifications',
+    ),
+    NavItem(
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
+      label: 'Profil',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withOpacity(0.12),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.qr_code_scanner_outlined), selectedIcon: Icon(Icons.qr_code_scanner, color: AppColors.primary), label: 'Scanner'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart, color: AppColors.primary), label: 'Consommations'),
-          NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications, color: AppColors.primary), label: 'Notifications'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profil'),
-        ],
+      bottomNavigationBar: FloatingNavBar(
+        leftItems: _leftItems,
+        centerItem: _centerItem,
+        rightItems: _rightItems,
+        currentIndex: _index,
+        onTap: _goTo,
       ),
     );
   }

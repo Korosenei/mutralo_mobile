@@ -50,23 +50,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Notifications'),
+        actions: [
+          if (_notifs.isNotEmpty)
+            TextButton(
+              onPressed: _toutMarquer,
+              child: const Text('Tout marquer comme lu', style: TextStyle(fontSize: 13)),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Notifications', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                  if (_notifs.isNotEmpty)
-                    TextButton(
-                      onPressed: _toutMarquer,
-                      child: const Text('Tout marquer comme lu', style: TextStyle(fontSize: 13)),
-                    ),
-                ],
-              ),
-            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _charger,

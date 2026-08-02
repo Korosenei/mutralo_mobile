@@ -69,17 +69,21 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mon QR code')),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  children: [
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 110,
+                ),
+                children: [
+                    const Text(
+                      'Mon QR code',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 4),
                     const Text(
                       "Présentez ce code au gestionnaire du restaurant pour consommer votre ticket du jour.",
-                      textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 13, color: AppColors.textMuted),
                     ),
                     const SizedBox(height: AppSpacing.lg),
@@ -131,8 +135,7 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
     );

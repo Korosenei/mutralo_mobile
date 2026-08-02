@@ -7,6 +7,11 @@ class Ticket {
   final String prixPaye;
   final String montantSubventionne;
   final String? dateConsommation;
+  final String? restaurantNom;
+  final String? validePartNom;
+  final String? transactionNumero;
+  final bool estValide;
+  final bool estExpire;
 
   Ticket({
     required this.id,
@@ -17,6 +22,11 @@ class Ticket {
     required this.prixPaye,
     required this.montantSubventionne,
     this.dateConsommation,
+    this.restaurantNom,
+    this.validePartNom,
+    this.transactionNumero,
+    this.estValide = false,
+    this.estExpire = false,
   });
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
@@ -29,6 +39,11 @@ class Ticket {
       prixPaye: json['prix_paye'].toString(),
       montantSubventionne: json['montant_subventionne'].toString(),
       dateConsommation: json['date_consommation'],
+      restaurantNom: json['restaurant_nom'],
+      validePartNom: json['valide_par_nom'],
+      transactionNumero: json['transaction_numero'],
+      estValide: json['est_valide'] ?? false,
+      estExpire: json['est_expire'] ?? false,
     );
   }
 
