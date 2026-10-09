@@ -3,49 +3,68 @@ class Utilisateur {
   final String email;
   final String prenom;
   final String nom;
+  final String typeUtilisateur; // CLIENT, CAISSIER, GESTIONNAIRE_RESTAURANT, ADMIN
+  final String? telephone;
   final String? matricule;
-  final String typeUtilisateur;
-  final int? agence;
+  final String? photoProfilUrl;
+  final int? agenceId;
   final String? agenceNom;
-  final int? restaurantGere;
-  final String? photoProfil;
+  final int? restaurantGereId;
+  final String? restaurantGereNom;
 
-  Utilisateur({
+  const Utilisateur({
     required this.id,
     required this.email,
     required this.prenom,
     required this.nom,
-    this.matricule,
     required this.typeUtilisateur,
-    this.agence,
+    this.telephone,
+    this.matricule,
+    this.photoProfilUrl,
+    this.agenceId,
     this.agenceNom,
-    this.restaurantGere,
-    this.photoProfil,
+    this.restaurantGereId,
+    this.restaurantGereNom,
   });
-
-  factory Utilisateur.fromJson(Map<String, dynamic> json) {
-    return Utilisateur(
-      id: json['id'],
-      email: json['email'],
-      prenom: json['prenom'] ?? '',
-      nom: json['nom'] ?? '',
-      matricule: json['matricule'],
-      typeUtilisateur: json['type_utilisateur'],
-      agence: json['agence'],
-      agenceNom: json['agence_nom'],
-      restaurantGere: json['restaurant_gere'],
-      photoProfil: json['photo_profil'],
-    );
-  }
 
   String get nomComplet => '$prenom $nom'.trim();
 
-  static const roleLabels = {
-    'CLIENT': 'Employé',
-    'CAISSIER': 'Caissier',
-    'GESTIONNAIRE_RESTAURANT': 'Gestionnaire de restaurant',
-    'ADMIN': 'Administrateur',
-  };
+  bool get estClient => typeUtilisateur == 'CLIENT';
+  bool get estCaissier => typeUtilisateur == 'CAISSIER';
+  bool get estGestionnaireRestaurant => typeUtilisateur == 'GESTIONNAIRE_RESTAURANT';
+  bool get estAdmin => typeUtilisateur == 'ADMIN';
 
-  String get roleLabel => roleLabels[typeUtilisateur] ?? typeUtilisateur;
+  factory Utilisateur.fromJson(Map<String, dynamic> json) {
+    return Utilisateur(
+      id: json['id'] as int,
+      email: json['email'] as String,
+      prenom: json['prenom'] as String? ?? '',
+      nom: json['nom'] as String? ?? '',
+      typeUtilisateur: json['type_utilisateur'] as String? ?? 'CLIENT',
+      telephone: json['telephone'] as String?,
+      matricule: json['matricule'] as String?,
+      photoProfilUrl: json['photo_profil'] as String?,
+      agenceId: json['agence'] as int?,
+      agenceNom: json['agence_nom'] as String?,
+      restaurantGereId: json['restaurant_gere'] as int?,
+      restaurantGereNom: json['restaurant_gere_nom'] as String?,
+    );
+  }
+
+  Utilisateur copyWith({String? photoProfilUrl}) {
+    return Utilisateur(
+      id: id,
+      email: email,
+      prenom: prenom,
+      nom: nom,
+      typeUtilisateur: typeUtilisateur,
+      telephone: telephone,
+      matricule: matricule,
+      photoProfilUrl: photoProfilUrl ?? this.photoProfilUrl,
+      agenceId: agenceId,
+      agenceNom: agenceNom,
+      restaurantGereId: restaurantGereId,
+      restaurantGereNom: restaurantGereNom,
+    );
+  }
 }

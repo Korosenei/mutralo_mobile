@@ -8,160 +8,129 @@ class NavItem {
   const NavItem({required this.icon, this.selectedIcon, required this.label});
 }
 
-/// Barre de navigation flottante en forme de pilule, avec un élément central
-/// surélevé. Les icônes sont réparties en deux groupes (gauche/droite) de
-/// largeur égale, ce qui garde le bouton central parfaitement aligné même
-/// si les deux groupes n'ont pas le même nombre d'éléments.
+/// Navbar flottante réservée aux onglets de navigation PRINCIPAUX.
+/// Notifications et Profil ne figurent plus ici (voir AppHeader) —
+/// conformément au brief, la navbar ne doit contenir que les sections
+/// structurantes de l'app (Tickets, QR, Accueil, Menus, Historique côté
+/// client ; Scanner, Consommations, Agences côté gestionnaire).
 class FloatingNavBar extends StatelessWidget {
   final List<NavItem> leftItems;
-  final List<NavItem> rightItems;
   final NavItem centerItem;
-  final int currentIndex; // index dans la liste combinée : left + [center] + right
+  final List<NavItem> rightItems;
+  final int currentIndex;
   final ValueChanged<int> onTap;
+  final bool centerVerrouille;
 
   const FloatingNavBar({
     super.key,
     required this.leftItems,
-    required this.rightItems,
     required this.centerItem,
+    required this.rightItems,
     required this.currentIndex,
     required this.onTap,
+    this.centerVerrouille = false,
   });
 
-  int get centerIndex => leftItems.length;
+  int get _indexCentre => leftItems.length;
 
+  @override
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.only(bottom: 10),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: SizedBox(
-          height: 82,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+        child: Container(
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6)),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.10),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(leftItems.length, (i) {
-                          return _NavIcon(
-                            item: leftItems[i],
-                            selected: currentIndex == i,
-                            onTap: () => onTap(i),
-                          );
-                        }),
-                      ),
-                    ),
-                    const SizedBox(width: 58), // espace réservé sous le bouton central
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(rightItems.length, (i) {
-                          final index = centerIndex + 1 + i;
-                          return _NavIcon(
-                            item: rightItems[i],
-                            selected: currentIndex == index,
-                            onTap: () => onTap(index),
-                          );
-                        }),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 32,
-                child: GestureDetector(
-                  onTap: () => onTap(centerIndex),
-                  child: Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryDark],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      border: Border.all(color: AppColors.background, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.45),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      currentIndex == centerIndex
-                          ? (centerItem.selectedIcon ?? centerItem.icon)
-                          : centerItem.icon,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                ),
-              ),
+              ...leftItems
+                  .asMap()
+                  .entries
+                  .map((e) => Expanded(child: _item(e.value, e.key))),
+              _itemCentral(),
+              ...rightItems.asMap().entries.map((e) =>
+                  Expanded(child: _item(e.value, _indexCentre + 1 + e.key))),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _NavIcon extends StatelessWidget {
-  final NavItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _NavIcon({required this.item, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.textMuted;
+  Widget _item(NavItem item, int index) {
+    final selectionne = index == currentIndex;
     return InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
+      onTap: () => onTap(index),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 4, vertical: 6), // ← réduit de 10 à 4
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              selected ? (item.selectedIcon ?? item.icon) : item.icon,
-              color: color,
-              size: 23,
+              selectionne ? (item.selectedIcon ?? item.icon) : item.icon,
+              color: selectionne ? AppColors.primary : AppColors.textMuted,
+              size: 24,
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
             Text(
               item.label,
+              maxLines: 1,
+              overflow:
+                  TextOverflow.ellipsis, // ← empêche le débordement du texte
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 10,
-                color: color,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: selectionne ? FontWeight.w700 : FontWeight.w500,
+                color: selectionne ? AppColors.primary : AppColors.textMuted,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _itemCentral() {
+    final selectionne = _indexCentre == currentIndex;
+    return InkWell(
+      onTap: () => onTap(_indexCentre),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: centerVerrouille
+              ? AppColors.disabled
+              : (selectionne
+                  ? AppColors.primary
+                  : AppColors.primary.withOpacity(0.85)),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          centerVerrouille
+              ? Icons.lock_outline
+              : (selectionne
+                  ? (centerItem.selectedIcon ?? centerItem.icon)
+                  : centerItem.icon),
+          color: Colors.white,
+          size: 24,
         ),
       ),
     );

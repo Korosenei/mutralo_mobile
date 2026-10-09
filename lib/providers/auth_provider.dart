@@ -1,58 +1,134 @@
 import 'package:flutter/foundation.dart';
-import '../api/api_client.dart';
-import '../api/auth_api.dart';
+import '../core/utils/result.dart';
 import '../models/utilisateur.dart';
+import '../services/auth_service.dart';
 
 enum AuthStatus { loading, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {
-  Utilisateur? _utilisateur;
-  AuthStatus _status = AuthStatus.loading;
+  final AuthService _authService;
 
-  Utilisateur? get utilisateur => _utilisateur;
-  AuthStatus get status => _status;
-
-  AuthProvider() {
-    _restaurerSession();
+  AuthProvider({required AuthService authService})
+      : _authService = authService {
+    _initialiser();
   }
 
-  Future<void> _restaurerSession() async {
-    final access = await TokenStorage.getAccess();
-    if (access == null) {
+  AuthStatus _status = AuthStatus.loading;
+  Utilisateur? _utilisateur;
+  Failure? _derniereErreur;
+  bool _enCours = false;
+
+  AuthStatus get status => _status;
+  Utilisateur? get utilisateur => _utilisateur;
+  Failure? get derniereErreur => _derniereErreur;
+  bool get enCours => _enCours;
+
+  Future<void> _initialiser() async {
+    final connecte = await _authService.estConnecte();
+    if (!connecte) {
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return;
     }
-    try {
-      _utilisateur = await AuthApi.getMe();
-      _status = AuthStatus.authenticated;
-    } catch (_) {
-      await TokenStorage.clear();
-      _status = AuthStatus.unauthenticated;
-    }
+    final result = await _authService.utilisateurConnecte();
+    result.when(
+      success: (u) {
+        _utilisateur = u;
+        _status = AuthStatus.authenticated;
+      },
+      failure: (_) => _status = AuthStatus.unauthenticated,
+    );
     notifyListeners();
   }
 
-  Future<void> login(String email, String motDePasse) async {
-    final user = await AuthApi.login(email, motDePasse);
-    _utilisateur = user;
-    _status = AuthStatus.authenticated;
+  Future<bool> login(String email, String motDePasse) async {
+    _enCours = true;
+    _derniereErreur = null;
     notifyListeners();
+
+    final result = await _authService.login(email, motDePasse);
+    bool succes = false;
+    result.when(
+      success: (u) {
+        _utilisateur = u;
+        _status = AuthStatus.authenticated;
+        succes = true;
+      },
+      failure: (f) => _derniereErreur = f,
+    );
+
+    _enCours = false;
+    notifyListeners();
+    return succes;
   }
 
   Future<void> logout() async {
-    await AuthApi.logout();
+    await _authService.logout();
     _utilisateur = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
   }
 
-  Future<void> refreshMe() async {
-    try {
-      _utilisateur = await AuthApi.getMe();
-      notifyListeners();
-    } catch (_) {
-      await logout();
-    }
+  Future<bool> demanderReinitialisationMotDePasse(String email) async {
+    _enCours = true;
+    _derniereErreur = null;
+    notifyListeners();
+
+    final result = await _authService.demanderReinitialisationMotDePasse(email);
+    final succes = result.isSuccess;
+    if (!succes) _derniereErreur = (result as ResultFailure).failure;
+
+    _enCours = false;
+    notifyListeners();
+    return succes;
+  }
+
+  Future<bool> changerMotDePasse({
+  required String ancienMotDePasse,
+  required String nouveauMotDePasse,
+  required String confirmationMotDePasse,
+}) async {
+  _enCours = true;
+  _derniereErreur = null;
+  notifyListeners();
+
+  // Validations locales rapides (le backend revalide de son côté).
+  if (ancienMotDePasse.isEmpty ||
+      nouveauMotDePasse.isEmpty ||
+      confirmationMotDePasse.isEmpty) {
+    _derniereErreur = Failure.validation('Veuillez remplir tous les champs.');
+    _enCours = false;
+    notifyListeners();
+    return false;
+  }
+
+  if (nouveauMotDePasse != confirmationMotDePasse) {
+    _derniereErreur =
+        Failure.validation('Les deux mots de passe ne correspondent pas.');
+    _enCours = false;
+    notifyListeners();
+    return false;
+  }
+
+  final result = await _authService.changerMotDePasse(
+    ancien: ancienMotDePasse,
+    nouveau: nouveauMotDePasse,
+    confirmation: confirmationMotDePasse,   // ← LE CHAMP MANQUANT
+  );
+
+  bool succes = false;
+  result.when(
+    success: (_) => succes = true,
+    failure: (f) => _derniereErreur = f,
+  );
+
+  _enCours = false;
+  notifyListeners();
+  return succes;
+}
+
+  void effacerErreur() {
+    _derniereErreur = null;
+    notifyListeners();
   }
 }

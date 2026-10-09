@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/colors.dart';
 
 class CountdownTimer extends StatefulWidget {
-  final String expireLe; // ISO datetime
+  final DateTime expireLe;
   final VoidCallback? onExpire;
 
   const CountdownTimer({super.key, required this.expireLe, this.onExpire});
@@ -13,51 +13,47 @@ class CountdownTimer extends StatefulWidget {
 }
 
 class _CountdownTimerState extends State<CountdownTimer> {
-  late Timer _timer;
-  int _remaining = 0;
+  Timer? _timer;
+  late Duration _restant;
+  bool _expireAppele = false;
 
   @override
   void initState() {
     super.initState();
-    _remaining = _calc();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      final r = _calc();
-      setState(() => _remaining = r);
-      if (r <= 0) {
-        _timer.cancel();
-        widget.onExpire?.call();
-      }
-    });
+    _restant = widget.expireLe.difference(DateTime.now());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
-  int _calc() {
-    final expire = DateTime.tryParse(widget.expireLe);
-    if (expire == null) return 0;
-    final diff = expire.difference(DateTime.now()).inSeconds;
-    return diff > 0 ? diff : 0;
+  void _tick() {
+    final restant = widget.expireLe.difference(DateTime.now());
+    if (!mounted) return;
+    setState(() => _restant = restant);
+    if (restant.isNegative && !_expireAppele) {
+      _expireAppele = true;
+      widget.onExpire?.call();
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final minutes = _remaining ~/ 60;
-    final seconds = _remaining % 60;
-    final isCritical = _remaining <= 30;
-
-    return Text(
-      _remaining > 0
-          ? 'Expire dans $minutes:${seconds.toString().padLeft(2, '0')}'
-          : 'Code expiré',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: isCritical ? AppColors.danger : AppColors.textMuted,
-      ),
+    if (_restant.isNegative) {
+      return const Text('Code expiré', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700));
+    }
+    final minutes = _restant.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final secondes = _restant.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.timer_outlined, size: 16, color: AppColors.textMuted),
+        const SizedBox(width: 4),
+        Text('Expire dans $minutes:$secondes', style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+      ],
     );
   }
 }
